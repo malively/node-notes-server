@@ -1,0 +1,319 @@
+{
+    "openapi": "3.0.0",
+    "servers": [],
+    "info": {
+        "title": "Node Notes Server Swagger",
+        "description": "",
+        "version": ""
+    },
+    "tags": [
+        {
+            "name": "Notes"
+        }
+    ],
+    "paths": {
+        "/notes": {
+            "get": {
+                "tags": ["Notes"],
+                "summary": "Get all notes",
+                "description": "Returns back all notes",
+                "operationId": "find",
+                "responses": {
+                    "200": {
+                        "description": "ok"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Notes"],
+                "summary": "Create a new note",
+                "description": "Creates a new note if validation passes",
+                "operationId": "create",
+                "responses": {
+                    "201": {
+                        "description": "ok"
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": {
+                                    "title": "Grocery List",
+                                    "content": "Apples, eggs, milk, etc..."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "servers": [
+                {
+                    "url": "/api"
+                }
+            ]
+        },
+        "/notes/{id}": {
+            "get": {
+                "tags": ["Notes"],
+                "summary": "Fetch single note by id",
+                "description": "Returns back the requested note",
+                "operationId": "one",
+                "responses": {
+                    "200": {
+                        "description": "created"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the note",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "put": {
+                "tags": ["Notes"],
+                "summary": "Edit an existing note",
+                "description": "Updates an existing note",
+                "operationId": "update",
+                "responses": {
+                    "200": {
+                        "description": "ok"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the note",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": {
+                                    "title": "Grocery List",
+                                    "content": "Apples, eggs, milk, bread, etc..."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Notes"],
+                "summary": "Delete a note by Id",
+                "description": "Deletes the given note",
+                "operationId": "delete",
+                "responses": {
+                    "200": {
+                        "description": "created"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id of the note",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ]
+            },
+            "servers": [
+                {
+                    "url": "/api"
+                }
+            ]
+        },
+        "/notes/bulk": {
+            "post": {
+                "tags": ["Notes"],
+                "summary": "Create many notes",
+                "description": "Bulk create notes",
+                "operationId": "createBulk",
+                "responses": {
+                    "201": {
+                        "description": "created"
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {
+                                            "type": "string"
+                                        },
+                                        "content": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "title": "Grocery List",
+                                        "content": "Apples, eggs, milk, bread, etc..."
+                                    },
+                                    {
+                                        "title": "Chores",
+                                        "content": "Laundry, mail, cleaning, etc..."
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["Notes"],
+                "summary": "Update many notes",
+                "description": "Bulk update notes",
+                "operationId": "updateBulk",
+                "responses": {
+                    "200": {
+                        "description": "created"
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "number"
+                                        },
+                                        "title": {
+                                            "type": "string"
+                                        },
+                                        "content": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "title": "Grocery List v2",
+                                        "content": "Apples, eggs, milk, bread, etc..."
+                                    },
+                                    {
+                                        "id": 2,
+                                        "title": "Chores v2",
+                                        "content": "Laundry, mail, cleaning, etc..."
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Notes"],
+                "summary": "Delete many notes",
+                "description": "Bulk delete notes",
+                "operationId": "deleteBulk",
+                "responses": {
+                    "200": {
+                        "description": "created"
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "number"
+                                        }
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": 1
+                                    },
+                                    {
+                                        "id": 2
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "servers": [
+                {
+                    "url": "/api"
+                }
+            ]
+        },
+        "/notes/search": {
+            "get": {
+                "tags": ["Notes"],
+                "summary": "Search for notes",
+                "description": "Returns back notes that match the search query",
+                "operationId": "search",
+                "responses": {
+                    "200": {
+                        "description": "created"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            },
+            "servers": [
+                {
+                    "url": "/api"
+                }
+            ]
+        }
+    }
+}
