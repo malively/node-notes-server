@@ -7,10 +7,10 @@ export class Note {
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @Column({ length: 1024, nullable: true })
+    @Column({ length: 1024, default: '' })
     public title: string;
 
-    @Column({ length: 16384, nullable: true })
+    @Column({ length: 16384, default: '' })
     public content: string;
 
     @CreateDateColumn()
