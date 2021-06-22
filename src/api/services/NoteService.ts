@@ -1,83 +1,100 @@
 import { Service } from 'typedi';
 import { OrmRepository } from 'typeorm-typedi-extensions';
 
-import { Logger, LoggerInterface } from '../../decorators/Logger';
-import { NoteRequest } from '../controllers/NoteController';
+import {
+    BulkUpdateNoteRequest, DeleteNoteRequest, NoteRequest
+} from '../controllers/requests/NoteRequests';
 import { NoteBadRequest } from '../errors/NoteBadRequest';
+import { NoteNotFound } from '../errors/NoteNotFound';
 import { Note } from '../models/Note';
 import { NoteRepository } from '../repositories/NoteRepository';
 
 @Service()
 export class NoteService {
-
     constructor(
-        @OrmRepository() private noteRepository: NoteRepository,
-        @Logger(__filename) private log: LoggerInterface
+        @OrmRepository() private noteRepository: NoteRepository
     ) { }
 
     public async find(): Promise<Note[]> {
-        this.log.info('Find all notes');
         return this.noteRepository.find();
     }
 
     public async search(query: string): Promise<Note[]> {
-        this.log.info('Find all notes');
         return this.noteRepository.findBySearchQuery(query);
     }
 
     public async findOne(id: number): Promise<Note | undefined> {
-        this.log.info(`Find note for id ${id}`);
-        return this.noteRepository.findOne({ id });
+        return await this.findNoteOrThrow(id);
     }
 
-    public async create(title: string, content: string): Promise<Note> {
+    public async create(noteRequest: NoteRequest): Promise<Note> {
         const note = new Note();
-        note.title = title;
-        note.content = content;
+        note.title = noteRequest.title;
+        note.content = noteRequest.content;
 
-        this.log.info('Create a new note => ', note.toString());
         this.validateNote(note);
         const newnote = await this.noteRepository.save(note);
         return newnote;
     }
 
-    public async createBulk(notes: NoteRequest[]): Promise<Note[]> {
+    public async createBulk(notes: NoteRequest[]): Promise<any[]> {
         const createdNotes = [];
 
         for (const noteRequest of notes) {
-            const createdNote = await this.create(noteRequest.title, noteRequest.content);
-            createdNotes.push(createdNote);
+            try {
+                const createdNote = await this.create(noteRequest);
+                createdNotes.push({ created: true, error: false, note: createdNote });
+            } catch (e) {
+                createdNotes.push({ created: false, error: true, note: noteRequest, error_message: e });
+            }
         }
 
         return createdNotes;
     }
 
-    public async update(id: number, title: string, content: string): Promise<Note> {
-        const note = new Note();
-        note.title = title;
-        note.content = content;
-        note.id = id;
+    public async update(id: number, noteRequest: NoteRequest): Promise<Note> {
+        const note = await this.findNoteOrThrow(id);
+        note.title = noteRequest.title;
+        note.content = noteRequest.content;
 
-        this.log.info('Update a note');
         this.validateNote(note);
-        return this.noteRepository.save(note);
+        return await this.noteRepository.save(note);
     }
 
-    public async updateBulk(notes: NoteRequest[]): Promise<Note[]> {
+    public async updateBulk(notes: BulkUpdateNoteRequest[]): Promise<any[]> {
         const updatedNotes = [];
 
         for (const noteRequest of notes) {
-            const updatedNote = await this.update(noteRequest.id, noteRequest.title, noteRequest.content);
-            updatedNotes.push(updatedNote);
+            try {
+                const updatedNote = await this.update(noteRequest.id, noteRequest);
+                updatedNotes.push({ updated: true, error: false, note: updatedNote });
+            } catch (e) {
+                updatedNotes.push({ updated: false, error: true, note: noteRequest, error_message: e });
+            }
         }
 
         return updatedNotes;
     }
 
     public async delete(id: number): Promise<void> {
-        this.log.info('Delete a note');
+        await this.findNoteOrThrow(id);
         await this.noteRepository.delete(id);
         return;
+    }
+
+    public async deleteBulk(notes: DeleteNoteRequest[]): Promise<any[]> {
+        const deletedNotes = [];
+
+        for (const noteRequest of notes) {
+            try {
+                await this.delete(noteRequest.id);
+                deletedNotes.push({ deleted: true, error: false, id: noteRequest.id });
+            } catch (e) {
+                deletedNotes.push({ deleted: false, error: true, id: noteRequest.id, error_message: e });
+            }
+        }
+
+        return deletedNotes;
     }
 
     private validateNote(note: Note): void {
@@ -86,4 +103,12 @@ export class NoteService {
         }
     }
 
+    private async findNoteOrThrow(id: number): Promise<Note> {
+        const note = await this.noteRepository.findOne(id);
+        if (!note) {
+            throw new NoteNotFound();
+        }
+
+        return note;
+    }
 }

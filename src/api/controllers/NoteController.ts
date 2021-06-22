@@ -1,18 +1,10 @@
 import {
-    Body, BodyParam, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put,
-    QueryParam
+    Body, Delete, Get, HttpCode, JsonController, OnUndefined, Param, Post, Put, QueryParam
 } from 'routing-controllers';
 
-import { NoteNotFound } from '../errors/NoteNotFound';
-import { Note } from '../models/Note';
 import { NotePresenter, NoteResponse } from '../presenters/NotePresenter';
 import { NoteService } from '../services/NoteService';
-
-export class NoteRequest {
-    public title: string;
-    public content: string;
-    public id?: number;
-}
+import { BulkUpdateNoteRequest, DeleteNoteRequest, NoteRequest } from './requests/NoteRequests';
 
 @JsonController('/notes')
 export class NoteController {
@@ -34,52 +26,44 @@ export class NoteController {
         return notes.map(note => this.notePresenter.createResponse(note));
     }
 
-    @Get('/:id')
-    @OnUndefined(NoteNotFound)
-    public async one(@Param('id') id: number): Promise<NoteResponse | undefined> {
+    @Get('/:id([0-9]+)')
+    public async one(@Param('id') id: number): Promise<NoteResponse> {
         const note = await this.noteService.findOne(id);
         return this.notePresenter.createResponse(note);
     }
 
     @HttpCode(201)
     @Post()
-    public async create(@BodyParam('title') title: string, @BodyParam('content') content: string): Promise<Note> {
-        const note = await this.noteService.create(title, content);
+    public async create(@Body() noteRequest: NoteRequest): Promise<NoteResponse> {
+        const note = await this.noteService.create(noteRequest);
         return this.notePresenter.createResponse(note);
+    }
+
+    @Put('/:id([0-9]+)')
+    public async update(@Param('id') id: number, @Body() noteRequest: NoteRequest): Promise<NoteResponse> {
+        const note = await this.noteService.update(id, noteRequest);
+        return this.notePresenter.createResponse(note);
+    }
+
+    @Delete('/:id([0-9]+)')
+    @OnUndefined(200)
+    public async delete(@Param('id') id: number): Promise<void> {
+        return await this.noteService.delete(id);
     }
 
     @HttpCode(201)
     @Post('/bulk')
-    public async createBulk(@Body({ required: true }) body: NoteRequest[]): Promise<NoteResponse[]> {
-        const createdNotes = await this.noteService.createBulk(body);
-
-        return createdNotes.map(note => this.notePresenter.createResponse(note));
+    public async createBulk(@Body({ required: true }) body: NoteRequest[]): Promise<any[]> {
+        return await this.noteService.createBulk(body);
     }
 
     @Put('/bulk')
-    public async updateBulk(@Body({ required: true }) body: NoteRequest[]): Promise<NoteResponse[]> {
-        const updatedNotes = await this.noteService.updateBulk(body);
-
-        return updatedNotes.map(note => this.notePresenter.createResponse(note));
+    public async updateBulk(@Body({ required: true }) body: BulkUpdateNoteRequest[]): Promise<any[]> {
+        return await this.noteService.updateBulk(body);
     }
 
     @Delete('/bulk')
-    @OnUndefined(200)
-    public async deleteBulk(@Body({ required: true }) body: NoteRequest[]): Promise<void> {
-        console.log('inside bulk delete');
-        for (const noteBody of body) {
-            await this.noteService.delete(noteBody.id);
-        }
-    }
-
-    @Put('/:id')
-    public async update(@Param('id') id: number, @BodyParam('title') title: string, @BodyParam('content') content: string): Promise<Note> {
-        return await this.noteService.update(id, title, content);
-    }
-
-    @Delete('/:id')
-    @OnUndefined(200)
-    public async delete(@Param('id') id: number): Promise<void> {
-        return await this.noteService.delete(id);
+    public async deleteBulk(@Body({ required: true }) body: DeleteNoteRequest[]): Promise<any[]> {
+        return await this.noteService.deleteBulk(body);
     }
 }
