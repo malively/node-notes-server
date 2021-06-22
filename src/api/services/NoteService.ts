@@ -16,11 +16,11 @@ export class NoteService {
     ) { }
 
     public async find(): Promise<Note[]> {
-        return this.noteRepository.find();
+        return await this.noteRepository.find();
     }
 
     public async search(query: string): Promise<Note[]> {
-        return this.noteRepository.findBySearchQuery(query);
+        return await this.noteRepository.findBySearchQuery(query);
     }
 
     public async findOne(id: number): Promise<Note | undefined> {
